@@ -24,7 +24,7 @@ contract BorrowYourCar is ERC4907{
     }
     uint256 constant public perHourCost=10;
     uint256 public nextCarId=0;
-    uint256 public perCarCost=1;
+    uint256 public perCarCost=0.001 ether;
     address public manager;
     mapping(uint256 => Car) public cars; // A map from car index to its information
     mapping(address => uint256[])public ownerCarList;
@@ -36,6 +36,15 @@ contract BorrowYourCar is ERC4907{
         // maybe you need a constructor
         myERC20=new MyERC20("OTTOToken","OTTOTokenSymbol");
         manager=msg.sender;
+    }
+    function getManager()view external returns(address){
+        return manager;
+    }
+    function getPerCarCost()view external returns(uint256){
+        return perCarCost;
+    }
+    function getPerHourCost()view external returns(uint256){
+        return perHourCost;
     }
     //铸造汽车NFT
     function mint(uint256 CarId,address to)public{
