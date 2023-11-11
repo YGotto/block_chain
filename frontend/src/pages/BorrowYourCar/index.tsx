@@ -31,8 +31,8 @@ const BorrowYourCarPage=()=>{
     const[myCarList,setMyCarList]=useState([])
     const[availableCarList,setAvailableCarList]=useState([])
     const[carIdForSearch,setCarIdForSearch]=useState('')
-    const[owner,setOwner]=useState(0)
-    const[borrower,setBorrower]=useState(0)
+    const[owner,setOwner]=useState('')
+    const[borrower,setBorrower]=useState('')
     const[borrowHour,setBorrowHour]=useState('')
     const[carIdForBorrow,setCarIdForBorrow]=useState('')
 
@@ -110,7 +110,8 @@ const BorrowYourCarPage=()=>{
         if (myERC20Contract) {
             try {
                 await myERC20Contract.methods.airdrop().send({
-                    from: account
+                    from: account,
+                    gasLimit:6721975
                 })
                 alert('You have claimed OTTO Token.')
             } catch (error: any) {
@@ -183,7 +184,7 @@ const BorrowYourCarPage=()=>{
     }, [])
 //购买车辆
     const onBuyCar=async()=>{
-        if(account===' '){
+        if(account===''){
             alert('You have not connected wallet yet.')
             return
         }
@@ -193,7 +194,8 @@ const BorrowYourCarPage=()=>{
                     {
                         from: account,
                         value: perCarCost,
-                        timestamp: new Date().getTime() / 1000
+                        timestamp: new Date().getTime() / 1000,
+                        gaslimit:6721975
                     }
                 )
                 alert('succeed to mint a car')
@@ -206,7 +208,7 @@ const BorrowYourCarPage=()=>{
     }
     //显示自己已经有的车辆
     const onGetMyCarList=async()=>{
-        if(account===' '){
+        if(account===''){
             alert('You have not connected wallet yet.')
             return
         }
@@ -214,7 +216,8 @@ const BorrowYourCarPage=()=>{
             try{
                 await borrowYourCarContract.methods.getMyCarList().send(
                     {
-                        from:account
+                        from:account,
+                        gaslimit:6721975
                     }
                 )
             }catch(error:any){
@@ -245,7 +248,7 @@ const BorrowYourCarPage=()=>{
     );
     //查看空闲车辆
     const onGetAvailableCarList=async()=>{
-        if(account===' '){
+        if(account===''){
             alert('You have not connected wallet yet.')
             return
         }
@@ -253,7 +256,8 @@ const BorrowYourCarPage=()=>{
             try{
                 await borrowYourCarContract.methods.getAvailableCars().send(
                     {
-                        from:account
+                        from:account,
+                        gasLimit:6721975
                     }
                 )
             }catch(error:any){
@@ -269,8 +273,9 @@ const BorrowYourCarPage=()=>{
                 borrowYourCarContract.events.GetAvailableCars()
                     .on('data',(event:any)=>{
                             const AvailableCars=event.returnValues[0];
-                            setMyCarList(AvailableCars);
+                            setAvailableCarList(AvailableCars);
                             console.log(AvailableCars);
+                            handleAvailableCarList();
                         }
                     )
                     .on('error',(error:any)=>{
@@ -288,11 +293,10 @@ const BorrowYourCarPage=()=>{
         }
         if(borrowYourCarContract){
             try{
-                const carOwner=await borrowYourCarContract.methods.getCarOwner(carIdForSearch).call()
-                setOwner(carOwner)
-                const carBorrower=await borrowYourCarContract.methods.getCarBorrower(carIdForSearch).call()
-                setBorrower(carBorrower)
-                showSearchResult()
+                const carOwner=await borrowYourCarContract.methods.getCarOwner(parseInt(carIdForSearch)).call()
+                setOwner(carOwner.toString())
+                const carBorrower=await borrowYourCarContract.methods.getCarBorrower(parseInt(carIdForSearch)).call()
+                setBorrower(carBorrower.toString())
             }catch(error:any){
                 alert(error.message)
             }
@@ -308,15 +312,17 @@ const BorrowYourCarPage=()=>{
         }
         if(borrowYourCarContract&&myERC20Contract){
             try{
-                await myERC20Contract.methods.approve(borrowYourCarContract.options.address,parseInt(perHourCost) * parseInt(borrowHour)).send(
+                await myERC20Contract.methods.approve(borrowYourCarContract.options.address,parseInt(perHourCost)).send(
                     {
-                        from:account
+                        from:account,
+                        gasLimit:6724975
                     }
                 )
                 await borrowYourCarContract.methods.carBorrowed(carIdForBorrow,borrowHour).send(
                     {
                         from:account,
-                        timestamp:new Date().getTime()/1000
+                        timestamp:new Date().getTime()/1000,
+                        gasLimit:6721975
                     }
                 )
             }catch(error:any){
@@ -374,7 +380,7 @@ const BorrowYourCarPage=()=>{
                 </div>
                 <div>
                     <Button onClick={onGetMyCarList}>查看我的汽车</Button>
-                    {myCarListState&&showCars(['0','1','2'])}
+                    {myCarListState&&showCars(myCarList)}
                     {myCarListState&&(
                         <div>
                             <Button onClick={reHandleMyCarListState}>关闭</Button>
@@ -384,7 +390,7 @@ const BorrowYourCarPage=()=>{
                 </div>
                 <div>
                     <Button onClick={onGetAvailableCarList}>查看当前可用汽车</Button>
-                    {availableCarListState&&showCars(['4','5','6'])}
+                    {availableCarListState&&showCars(availableCarList)}
                     {availableCarListState&&(
                         <div>
                             <Button onClick={reHandleAvailableCarList}>关闭</Button>
@@ -399,6 +405,7 @@ const BorrowYourCarPage=()=>{
                             请输入汽车ID
                             <input style={{width: '30px',margin: '5px'}} onChange={(e) => setCarIdForSearch(e.target.value)}/>
                             <Button onClick={onGetOwnerAndBorrower}>查询</Button>
+                            {showSearchResult()}
                         </div>
 
                     )

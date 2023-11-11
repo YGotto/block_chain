@@ -22,9 +22,9 @@ contract BorrowYourCar is ERC4907{
         address borrower;
         uint256 borrowUntil;
     }
-    uint256 constant public perHourCost=10;
+    uint256 public perHourCost=10;
     uint256 public nextCarId=0;
-    uint256 public perCarCost=0.001 ether;
+    uint256 public perCarCost=10;
     address public manager;
     mapping(uint256 => Car) public cars; // A map from car index to its information
     mapping(address => uint256[])public ownerCarList;
@@ -37,13 +37,13 @@ contract BorrowYourCar is ERC4907{
         myERC20=new MyERC20("OTTOToken","OTTOTokenSymbol");
         manager=msg.sender;
     }
-    function getManager()view external returns(address){
+    function getManager()public view returns(address){
         return manager;
     }
-    function getPerCarCost()view external returns(uint256){
+    function getPerCarCost()public view returns(uint256){
         return perCarCost;
     }
-    function getPerHourCost()view external returns(uint256){
+    function getPerHourCost()public view returns(uint256){
         return perHourCost;
     }
     //铸造汽车NFT
@@ -75,13 +75,15 @@ contract BorrowYourCar is ERC4907{
         }
         uint256[] memory result=new uint256[](count);
         uint j=0;
-        for(uint256 i=0;i<count;i++){
+        for(uint256 i=0;i<nextCarId;i++){
             if(block.timestamp>cars[i].borrowUntil){
                 result[j]=i;
+                j++;
             }
         }
-        availableCars=result;
-        emit GetAvailableCars(availableCars);
+        emit GetAvailableCars(result);
+        return result;
+
     }
     //查询一辆汽车的主人
     function getCarOwner(uint carId)public view returns(address owner){

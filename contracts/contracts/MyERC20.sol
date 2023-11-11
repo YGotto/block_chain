@@ -13,7 +13,7 @@ contract MyERC20 is ERC20 {
 
     function airdrop() external {
         require(claimedAirdropPlayerList[msg.sender] == false, "This user has claimed airdrop already");
-        _mint(msg.sender, 10000);
+        _mint(msg.sender, 1000000);
         claimedAirdropPlayerList[msg.sender] = true;
     }
 
